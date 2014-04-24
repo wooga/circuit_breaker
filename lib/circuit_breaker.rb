@@ -13,13 +13,12 @@ module CircuitBreaker
     }
 
     def initialize(options = {})
-      options = DEFAULTS.merge(options)
+      options             = DEFAULTS.merge(options)
       @failure_threshold  = options[:failure_threshold]
       @invocation_timeout = options[:invocation_timeout]
       @reset_timeout      = options[:reset_timeout]
       @last_failure_time  = nil
       @failure_count      = 0
-      reset!
     end
 
     def closed?
@@ -41,7 +40,7 @@ module CircuitBreaker
 
     def reset!
       @failure_count = 0
-      @last_failure_time = Time.now - @reset_timeout + 1
+      @last_failure_time = nil
     end
 
 

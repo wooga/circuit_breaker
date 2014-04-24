@@ -75,7 +75,7 @@ describe CircuitBreaker::Basic do
     assert circuit_breaker.half_open?
 
     circuit_breaker.execute do
-      assert true
+      #
     end
 
     assert circuit_breaker.closed?
