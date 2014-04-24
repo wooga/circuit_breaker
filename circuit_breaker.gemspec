@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'circuit_breaker/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "circuit_breaker"
+  spec.name          = "ya_circuit_breaker"
   spec.version       = CircuitBreaker::VERSION
   spec.authors       = ["Patrick Huesler"]
   spec.email         = ["patrick.huesler@gmail.com"]
