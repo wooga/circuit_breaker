@@ -1,5 +1,5 @@
 require "circuit_breaker/version"
-require "circuit_breaker/circuit_broken_exception"
+require "circuit_breaker/circuit_broken_error"
 require "timeout"
 
 
@@ -78,7 +78,7 @@ module CircuitBreaker
           raise
         end
       else
-        raise CircuitBrokenException.new("Circuit is broken")
+        raise CircuitBrokenError.new("Circuit is broken")
       end
     end
 

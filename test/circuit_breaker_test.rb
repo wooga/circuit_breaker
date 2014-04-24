@@ -56,7 +56,7 @@ describe CircuitBreaker::Basic do
       end
     end
 
-    assert_raises CircuitBreaker::CircuitBrokenException do
+    assert_raises CircuitBreaker::CircuitBrokenError do
       circuit_breaker.execute do
         assert false, "The call should not be executed in open state"
       end
