@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = CircuitBreaker::VERSION
   spec.authors       = ["Patrick Huesler"]
   spec.email         = ["patrick.huesler@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.summary       = %q{Basic circuit breaker in Ruby}
+  spec.description   = %q{Prevent long running external calls from blocking an application}
+  spec.homepage      = "https://github.com/wooga/circuit_breaker"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
