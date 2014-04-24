@@ -1,6 +1,14 @@
 # encoding: UTF-8
 require 'test_helper'
 
+def successful_method
+  nil
+end
+
+def slow_method(sleep_time)
+  sleep(sleep_time)
+end
+
 describe CircuitBreaker::Basic do
 
   it "should initialize in a closed state" do
@@ -40,10 +48,10 @@ describe CircuitBreaker::Basic do
 
   it "should trip after the failure threshold has been exceeded" do
     invocation_timeout = 0.1
-    circuit_breaker = CircuitBreaker::Basic.new(failure_threshold: 1, invocation_timeout: invocation_timeout)
+    circuit_breaker    = CircuitBreaker::Basic.new(failure_threshold: 1, invocation_timeout: invocation_timeout)
 
     circuit_breaker.execute do
-      sleep invocation_timeout + 0.1
+      slow_method(invocation_timeout + 0.1)
     end
 
     assert_raises CircuitBreaker::CircuitBrokenException do
@@ -54,8 +62,10 @@ describe CircuitBreaker::Basic do
   end
 
   it "should reset after reset timeout" do
-    reset_timeout = 0.1
+    reset_timeout   = 0.1
     circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+
+    # switch into an open state
     circuit_breaker.trip!
 
     assert circuit_breaker.open?
@@ -66,8 +76,10 @@ describe CircuitBreaker::Basic do
   end
 
   it "should change from half open to closed on success" do
-    reset_timeout = 0.1
+    reset_timeout   = 0.1
     circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+
+    # switch into an open state
     circuit_breaker.trip!
 
     sleep(reset_timeout)
@@ -75,7 +87,7 @@ describe CircuitBreaker::Basic do
     assert circuit_breaker.half_open?
 
     circuit_breaker.execute do
-      #
+      successful_method
     end
 
     assert circuit_breaker.closed?
@@ -92,7 +104,7 @@ describe CircuitBreaker::Basic do
     assert circuit_breaker.half_open?
 
     circuit_breaker.execute do
-      sleep invocation_timeout + 0.1
+      slow_method(invocation_timeout + 0.1)
     end
 
     assert circuit_breaker.open?
