@@ -50,8 +50,10 @@ describe CircuitBreaker::Basic do
     invocation_timeout = 0.1
     circuit_breaker    = CircuitBreaker::Basic.new(failure_threshold: 1, invocation_timeout: invocation_timeout)
 
-    circuit_breaker.execute do
-      slow_method(invocation_timeout + 0.1)
+    assert_raises Timeout::Error do
+      circuit_breaker.execute do
+        slow_method(invocation_timeout + 0.1)
+      end
     end
 
     assert_raises CircuitBreaker::CircuitBrokenException do
@@ -62,27 +64,27 @@ describe CircuitBreaker::Basic do
   end
 
   it "should reset after reset timeout" do
-    reset_timeout   = 0.1
-    circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+    reset_timeouts  = 0.1
+    circuit_breaker = CircuitBreaker::Basic.new(reset_timeouts: reset_timeouts)
 
     # switch into an open state
     circuit_breaker.trip!
 
     assert circuit_breaker.open?
 
-    sleep(reset_timeout)
+    sleep(reset_timeouts)
 
     assert circuit_breaker.half_open?
   end
 
   it "should change from half open to closed on success" do
-    reset_timeout   = 0.1
-    circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+    reset_timeouts  = 0.1
+    circuit_breaker = CircuitBreaker::Basic.new(reset_timeouts: reset_timeouts)
 
     # switch into an open state
     circuit_breaker.trip!
 
-    sleep(reset_timeout)
+    sleep(reset_timeouts)
 
     assert circuit_breaker.half_open?
 
@@ -95,18 +97,37 @@ describe CircuitBreaker::Basic do
 
   it "should change from hald open to closed on failure" do
     invocation_timeout = 0.1
-    reset_timeout      = 0.1
-    circuit_breaker = CircuitBreaker::Basic.new(invocation_timeout: invocation_timeout, reset_timeout: reset_timeout)
+    reset_timeouts     = 0.1
+    circuit_breaker    = CircuitBreaker::Basic.new(invocation_timeout: invocation_timeout, reset_timeouts: reset_timeouts)
     circuit_breaker.trip!
 
-    sleep(reset_timeout)
+    sleep(reset_timeouts)
 
     assert circuit_breaker.half_open?
 
-    circuit_breaker.execute do
-      slow_method(invocation_timeout + 0.1)
+    assert_raises Timeout::Error do
+      circuit_breaker.execute do
+        slow_method(invocation_timeout + 0.1)
+      end
     end
 
     assert circuit_breaker.open?
+  end
+
+  it "should back off exponentially" do
+    invocation_timeout = 0.1
+    reset_timeout      = 0.1
+    reset_timeouts     = [reset_timeout, 2 * reset_timeout, 3 * reset_timeout]
+    circuit_breaker    = CircuitBreaker::Basic.new(failure_threshold: 1, invocation_timeout: invocation_timeout, reset_timeouts: reset_timeouts)
+
+    reset_timeouts.each do |timeout|
+      assert_raises Timeout::Error do
+        circuit_breaker.execute do
+          slow_method(invocation_timeout + 0.1)
+        end
+      end
+      assert circuit_breaker.open?
+      sleep(timeout)
+    end
   end
 end
