@@ -3,14 +3,14 @@
 Implementation of the circuit breaker pattern to protect against high latencies or outages of services.
 See Martin Fowlers [writeup](http://martinfowler.com/bliki/CircuitBreaker.html) for more information.
 
-This is a very basic implementation. There is another implementation with a nice DSL by [wsargent.](https://github.com/wsargent/circuit_breaker)
+There are other implementations by [wsargent.](https://github.com/wsargent/circuit_breaker) and [soundcloud](https://github.com/soundcloud/simple_circuit_breaker).
 
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'circuit_breaker'
+    gem 'ya_circuit_breaker'
 
 And then execute:
 
@@ -18,7 +18,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install circuit_breaker
+    $ gem install ya_circuit_breaker
 
 ## Usage
 
