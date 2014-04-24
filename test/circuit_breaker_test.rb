@@ -130,4 +130,6 @@ describe CircuitBreaker::Basic do
       sleep(timeout)
     end
   end
+
+
 end
