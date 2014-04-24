@@ -6,8 +6,8 @@ require 'circuit_breaker/version'
 Gem::Specification.new do |spec|
   spec.name          = "ya_circuit_breaker"
   spec.version       = CircuitBreaker::VERSION
-  spec.authors       = ["Patrick Huesler"]
-  spec.email         = ["patrick.huesler@gmail.com"]
+  spec.authors       = ["Patrick Huesler", "Nadezda Zryanina"]
+  spec.email         = ["patrick.huesler@gmail.com", "n.s.zryanina@gmail.com"]
   spec.summary       = %q{Basic circuit breaker in Ruby}
   spec.description   = %q{Prevent long running external calls from blocking an application}
   spec.homepage      = "https://github.com/wooga/circuit_breaker"
