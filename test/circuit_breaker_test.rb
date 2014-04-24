@@ -52,4 +52,49 @@ describe CircuitBreaker::Basic do
       end
     end
   end
+
+  it "should reset after reset timeout" do
+    reset_timeout = 0.1
+    circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+    circuit_breaker.trip!
+
+    assert circuit_breaker.open?
+
+    sleep(reset_timeout)
+
+    assert circuit_breaker.half_open?
+  end
+
+  it "should change from half open to closed on success" do
+    reset_timeout = 0.1
+    circuit_breaker = CircuitBreaker::Basic.new(reset_timeout: reset_timeout)
+    circuit_breaker.trip!
+
+    sleep(reset_timeout)
+
+    assert circuit_breaker.half_open?
+
+    circuit_breaker.execute do
+      assert true
+    end
+
+    assert circuit_breaker.closed?
+  end
+
+  it "should change from hald open to closed on failure" do
+    invocation_timeout = 0.1
+    reset_timeout      = 0.1
+    circuit_breaker = CircuitBreaker::Basic.new(invocation_timeout: invocation_timeout, reset_timeout: reset_timeout)
+    circuit_breaker.trip!
+
+    sleep(reset_timeout)
+
+    assert circuit_breaker.half_open?
+
+    circuit_breaker.execute do
+      sleep invocation_timeout + 0.1
+    end
+
+    assert circuit_breaker.open?
+  end
 end

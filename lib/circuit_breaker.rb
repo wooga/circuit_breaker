@@ -8,14 +8,18 @@ module CircuitBreaker
 
     DEFAULTS = {
       failure_threshold:  5,
-      invocation_timeout: 2
+      invocation_timeout: 2,
+      reset_timeout:      10
     }
 
     def initialize(options = {})
       options = DEFAULTS.merge(options)
-      @failure_count = 0
-      @failure_threshold = options[:failure_threshold]
+      @failure_threshold  = options[:failure_threshold]
       @invocation_timeout = options[:invocation_timeout]
+      @reset_timeout      = options[:reset_timeout]
+      @last_failure_time  = nil
+      @failure_count      = 0
+      reset!
     end
 
     def closed?
@@ -26,71 +30,51 @@ module CircuitBreaker
       state == :open
     end
 
+    def half_open?
+      state == :half_open
+    end
+
     def trip!
       @failure_count = @failure_threshold
+      @last_failure_time = Time.now
     end
 
     def reset!
       @failure_count = 0
+      @last_failure_time = Time.now - @reset_timeout + 1
     end
 
+
     def state
-     @failure_count >= @failure_threshold ? :open : :closed
+      case
+        when (@failure_count >= @failure_threshold) &&
+          (Time.now - @last_failure_time) > @reset_timeout
+          :half_open
+        when @failure_count >= @failure_threshold
+          :open
+        else
+          :closed
+      end
     end
 
     def execute &block
-      if closed?
+      if closed? || half_open?
         begin
           Timeout::timeout(@invocation_timeout) do
             block.call if block_given?
           end
+          reset!
         rescue Timeout::Error
-          @failure_count += 1
+          record_failure
         end
       else
         raise CircuitBrokenException.new("Circuit is broken")
       end
     end
-    #def initialize
-      #@invocation_timeout = 0.01
-      #@failure_threshold = 5
-      #@reset_timeout = 0.1
-      #reset
-    #end
 
-
-    #def call args
-      #case state
-      #when :closed, :half_open
-        #begin
-          #do_call args
-        #rescue Timeout::Error
-          #record_failure
-          #raise $!
-        #end
-      #when :open then raise CircuitBreaker::Open
-      #else raise "Unreachable Code"
-      #end
-    #end
-
-    #def do_call args
-      #result = Timeout::timeout(@invocation_timeout) do
-        #@circuit.call args
-      #end
-      #reset
-      #return result
-    #end
-
-    #def reset
-      #@failure_count = 0
-      #@last_failure_time = nil
-    #end
-
-    #
-
-    #def record_failure
-      #@failure_count += 1
-      #@last_failure_time = Time.now
-    #end
+    def record_failure
+      @failure_count += 1
+      @last_failure_time = Time.now
+    end
   end
 end
