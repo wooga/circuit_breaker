@@ -50,7 +50,9 @@ module CircuitBreaker
     end
 
     def reset_timeout
-      @reset_timeouts[[@reset_timeouts.size - 1, retry_counter].min]
+      min = [@reset_timeouts.size - 1, retry_counter].min
+      index = min > 0 ? rand(min) + 1 : 0
+      @reset_timeouts[index]
     end
 
 
