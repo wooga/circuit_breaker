@@ -9,7 +9,8 @@ module CircuitBreaker
     DEFAULTS = {
       failure_threshold:    5,
       invocation_timeout:   2,
-      reset_timeouts:      10
+      reset_timeouts:      10,
+      errors_handled:     [],
     }
 
     attr_reader :failure_count, :last_failure_time, :failure_threshold
@@ -19,6 +20,7 @@ module CircuitBreaker
       @failure_threshold  = options[:failure_threshold]
       @invocation_timeout = options[:invocation_timeout]
       @reset_timeouts     = Array(options[:reset_timeouts])
+      @errors_handled     = Array(options[:errors_handled])
       @last_failure_time  = nil
       @failure_count      = 0
     end
@@ -75,8 +77,8 @@ module CircuitBreaker
             block.call if block_given?
           end
           reset!
-        rescue Timeout::Error
-          record_failure
+        rescue Exception => e
+          record_failure if e.class == Timeout::Error || @errors_handled.include?(e.class)
           raise
         end
       else
