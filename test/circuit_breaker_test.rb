@@ -63,6 +63,17 @@ describe CircuitBreaker::Basic do
     end
   end
 
+  it "should trip after the failure threshold has been exceeded" do
+    circuit_breaker    = CircuitBreaker::Basic.new(failure_threshold: 1, invocation_timeout: 0.1, errors_handled: ArgumentError)
+
+    assert_raises ArgumentError do
+      circuit_breaker.execute do
+        raise ArgumentError
+      end
+    end
+    assert circuit_breaker.open?, "Circuit should be open"
+  end
+
   it "should reset after reset timeout" do
     reset_timeouts  = 0.1
     circuit_breaker = CircuitBreaker::Basic.new(reset_timeouts: reset_timeouts)
