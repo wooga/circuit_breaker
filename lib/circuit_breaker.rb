@@ -19,7 +19,7 @@ module CircuitBreaker
       options             = DEFAULTS.merge(options)
       @failure_threshold  = options[:failure_threshold]
       @invocation_timeout = options[:invocation_timeout]
-      @reset_timeouts     = Array(options[:reset_timeouts])
+      @reset_timeouts     = options[:reset_timeouts].is_a?(Proc) ? options[:reset_timeouts] : Array(options[:reset_timeouts])
       @errors_handled     = Array(options[:errors_handled])
       @last_failure_time  = nil
       @failure_count      = 0
@@ -52,9 +52,13 @@ module CircuitBreaker
     end
 
     def reset_timeout
-      min = [@reset_timeouts.size - 1, retry_counter].min
-      index = min > 0 ? rand(min) + 1 : 0
-      @reset_timeouts[index]
+      if @reset_timeouts.is_a? Proc
+        return @reset_timeouts.call retry_counter
+      else
+        index = [@reset_timeouts.size - 1, retry_counter].min
+        @reset_timeouts[index]
+      end
+
     end
 
 
