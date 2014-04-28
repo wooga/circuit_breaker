@@ -31,7 +31,10 @@ options = {
   # invocation timeout in seconds
   invocation_timeout: 0.5,
   # a list of timeouts for consecutive failures in seconds. can be used for exponential backoff
-  reset_timeouts: [2, 4, 8, 16, 32, 64, 128]
+  # a Proc can be also passed instead, that can operate on a number of retries after circuit breaker trips
+  reset_timeouts: [2, 4, 8, 16, 32, 64, 128],  # or Proc.new {|retry| retry * 10}
+  # a list of errors or exceptions that indicates outtage of service
+  errors_handled: [Redis::CommandError]
 }
 
 circuit_breaker = CircuitBreaker::Basic.new(options)
@@ -44,6 +47,8 @@ rescue CircuitBreaker::CircuitBrokenError
   $stderr.puts "Circuit tripped"
 rescue Timeout::Error
   $stderr.puts "Call took too long"
+resque Redis::CommandError  # from errors_handled
+  $stderr.puts "One of the errors indicating outtage of the service"
 rescue Error
   $stderr.puts "Error thrown by 'http_api_call'"
 end
