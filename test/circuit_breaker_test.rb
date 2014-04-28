@@ -88,6 +88,23 @@ describe CircuitBreaker::Basic do
     assert circuit_breaker.half_open?
   end
 
+  it "should handle proc as reset timeout" do
+    reset_timeouts  = Proc.new {|retry_counter| retry_counter + 1}
+    circuit_breaker = CircuitBreaker::Basic.new(failure_threshold: 1, reset_timeouts: reset_timeouts, errors_handled: ArgumentError)
+
+    assert_raises ArgumentError do
+      circuit_breaker.execute do
+        raise ArgumentError
+      end
+    end
+
+    assert circuit_breaker.open?, "Circuit should be open"
+
+    sleep(reset_timeouts.call 1)
+
+    assert circuit_breaker.half_open?
+  end
+
   it "should change from half open to closed on success" do
     reset_timeouts  = 0.1
     circuit_breaker = CircuitBreaker::Basic.new(reset_timeouts: reset_timeouts)
