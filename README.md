@@ -31,8 +31,8 @@ options = {
   # invocation timeout in seconds
   invocation_timeout: 0.5,
   # a list of timeouts for consecutive failures in seconds. can be used for exponential backoff
-  # a Proc can be also passed instead, that can operate on a number of retries after circuit breaker trips
-  reset_timeouts: [2, 4, 8, 16, 32, 64, 128],  # or Proc.new {|retry| retry * 10}
+  # each element can be also a Proc, that can operate on a number of retries after circuit breaker trips
+  reset_timeouts: [2, 4, 8, 16, 32, 64, Proc.new {|retry| rand(retry * 10)}],
   # a list of errors or exceptions that indicates outtage of service
   errors_handled: [Redis::CommandError]
 }
